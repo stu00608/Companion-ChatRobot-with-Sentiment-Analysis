@@ -353,10 +353,6 @@ async def entities(ctx,text):
             )
     await ctx.send("----Entities Analysis End----")
 
-
-def is_correct(m):
-    return m.content=='是'
-
 def mailCheck(mail):  
     regex = '^[a-z0-9]+[\._]?[a-z0-9]+[@]\w+[.]\w{2,3}$'
     # pass the regular expression 
@@ -385,6 +381,8 @@ async def sys(ctx,option):
         await asyncio.sleep(5)
         await ctx.send("再見! 下次再繼續聊天吧。")
         log("system shutdown")
+        for pins in LED:
+            GPIO.output(pins,GPIO.LOW)
         await asyncio.sleep(1)
         subprocess.Popen(['sudo','shutdown','-h','now'])
     elif(option=='reboot'):
@@ -393,6 +391,8 @@ async def sys(ctx,option):
         await asyncio.sleep(5)
         await ctx.send("等等再繼續聊天吧。")
         log("system reboot")
+        for pins in LED:
+            GPIO.output(pins,GPIO.LOW)
         await asyncio.sleep(1)
         subprocess.Popen(['sudo','reboot'])    
     
@@ -400,7 +400,7 @@ async def sys(ctx,option):
     GPIO.output(LED[2],GPIO.LOW)
     GPIO.output(LED[0],GPIO.HIGH)
     return
-
+'''
 @bot.command()
 async def maillog(ctx,mail,date):
 
@@ -475,7 +475,25 @@ async def maillog(ctx,mail,date):
     GPIO.output(LED[2],GPIO.LOW)
     GPIO.output(LED[0],GPIO.HIGH)
     return
-
+'''
+@bot.command()
+async def git(ctx,cmd):
+    if(cmd=='push'):
+        try:
+            subprocess.Popen(['git','push','-u','origin','master'])
+        except:
+            log("git : 推送錯誤")
+            return
+    elif(cmd=='pull'):
+        try:
+            subprocess.Popen(['git','pull','origin','master'])
+        except:
+            log("git : 拉取錯誤")
+            return
+    else:
+        log("git : 指令輸入錯誤")
+        return
+    return
 
 # keywordScoreInput
 # @bot.command()
