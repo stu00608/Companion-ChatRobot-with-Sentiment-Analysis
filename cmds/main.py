@@ -8,6 +8,9 @@ class main(Cog_Extension) :
     async def ping(self, ctx) : # 在 Discord 裡可輸入的指令 => T!ping
         # ctx => 使 bot 知道要在哪個使用者、ID、伺服器、頻道回覆訊息
         await ctx.send(f'延遲 {round(self.bot.latency * 1000)} 毫秒') # 送出延遲時間
+
+    
+    
         
     '''
     @commands.command()

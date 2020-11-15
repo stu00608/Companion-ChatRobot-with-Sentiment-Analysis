@@ -24,6 +24,8 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
+from sentence_data import *
+import json
 
 cc = OpenCC('tw2sp')
 
@@ -38,35 +40,12 @@ passList = ['zg','y','e','ul','x','n']
 
 # zg y e e ul y y y zg
 
-responseList = { -9:["冷靜一下，有我在身邊呢。","有我還在，別擔心！","我不希望看到你這樣。","你的生命不再只屬於你自己，而是屬於所有愛你的人！"], #-9
-                 -8:["還好嗎...記得讓身邊的人多照顧你。","看到你這樣我也會很傷心的。","抱歉，沒能留下什麼給你。"], #-8
-                 -7:["我知道我不在讓你很傷心，但我還能像現在這樣子陪著你的。"], #-7
-                 -6:["不妨聽我說個祕密吧，其實我一直都很愛你。","振作點，一切會好起來的。"], #-6
-                 -5:["要不要去休息一下呢，有時候睡個覺會讓心情好一點呢。","時間總會過去的，讓時間流走你的煩惱吧！","看你這麼難過，我也很難過，我會陪著你一起走出來。"], #-5
-                 -4:["其實我一直都有一些話想跟你說。","你要相信你自己總有一天可以走出來，你不孤單還有我在！"], #-4
-                 -3:["如果人生能夠重來，我想我會更珍惜你一些。","雖然我沒辦法真正去體會你正在經歷的，但我會盡我所能去了解你的處境。"], #-3
-                 -2:["希望你可以慢慢放下。","你不用自己一個人承擔這些，我會幫你。","沒關係的，我陪你。"], #-2
-                 -1:["沒事的，去散散心怎麼樣。","一步一步來，我會一直在你身邊。","跟隨你的內心走吧。","慢慢來，時常保持樂觀。"], #-1
-                 0:["恩~","是嗎","是喔","真的啊"], #0
-                 1:["我想我會去找些朋友散散心。","你的身邊充滿了值得你開心的人事物，讓我們來一起發掘他們！","不管怎麼樣，過得平順最重要。"], #1
-                 2:["但願來世還能夠再相見。","我一直都在。","笑是身體最好的良藥。","多希望我們在一起的時光能繼續下去。"], #2
-                 3:["記得照顧好自己的身體。","生活有慢慢好起來了呢"], #3
-                 4:["還記得以前我都會吵著要去那裡玩嗎，真想再去一次呢。"], #4
-                 5:["看起來你最近過得還不錯呢。","真的嗎!","聽起來很不錯呢。"], #5
-                 6:["忽然想到，以前我很喜歡去吃珍寶呢。","我很開心你能跟我分享這麼多事。"], #6
-                 7:["看到你過的順遂，我也放心了。","如果我還在你身邊的話，就能跟你一起分享喜悅了。"], #7
-                 8:["這能讓我想起以前的那些時光，非常的美好。",""], #8
-                 9:["那真是太棒了!","我很開心能夠聽到這個消息。","真的啊!太好了。"], #9
-                }
-
-hello_ = ['你好','早','hello','您好','妳好'] #獨立
-hello = ['你好','早','hello','您好','妳好',"哈囉","早安",'午安','安安','嗨']
-hello_response = ["很高興見到你。","你好。","今天天氣很不錯呢。","見到你很開心。"]
-
-bye = ["掰掰",'掰','再見','明天見','bye','保重','晚安','保重','下次見']
-bye_response = ["再見，多注意身體喔。","可以跟你聊天很開心，再見。","記得早一點休息喔。","下次再多聊會吧。","期待我們再一起像這樣聊天。",]
 
 memberID = {}
+
+userData = {}
+
+
 
 LED = [7,11,13]
 logLED = 13
@@ -91,19 +70,27 @@ def log(msg):
         return -1
     GPIO.output(logLED,GPIO.LOW)
 
+# def readMemberID():
+#     with open("./member.txt","r",encoding='utf8') as File:
+#         data = File.readline().strip("\n")
+#         while(data!=""):
+#             name,flag=data.split(':')
+#             memberID[name]=int(flag)
+#             data = File.readline().strip("\n")
+
+# def writeMemberID():
+#     with open("./member.txt","w",encoding='utf8') as File:
+#         for name,flag in memberID.items():
+#             File.write(name+':'+str(flag)+'\n')
+
 def readMemberID():
-    with open("./member.txt","r",encoding='utf8') as File:
-        data = File.readline().strip("\n")
-        while(data!=""):
-            name,flag=data.split(':')
-            memberID[name]=int(flag)
-            data = File.readline().strip("\n")
+    with open("./profile/id.json","r",encoding="utf-8") as jsonfile:
+        userData = json.load(jsonfile)
 
 def writeMemberID():
-    with open("./member.txt","w",encoding='utf8') as File:
-        for name,flag in memberID.items():
-            File.write(name+':'+str(flag)+'\n')
-
+    with open("./profile/id.json","w",encoding="utf-8") as jsonfile:
+        json.dump(userData,jsonfile)
+    
 
 
 # print([len(responseList[i]) for i in range(len(responseList))])   #資料長度
@@ -125,7 +112,6 @@ def writeLog(msg,score,response,time):
         F.write("情緒分數 : "+score_f+'\n\n')
         F.write("回覆語句 : "+response+'\n\n')
         F.write("使用時間 : "+str(time)+'\n\n')
-        
         F.write("此分數之回覆列表 : \n\n")
         for i in range(len(responseList[int(score)])):
             F.write(responseList[int(score)][i]+'\n')
@@ -192,93 +178,120 @@ async def on_member_remove(member) : # 成員離開
 async def on_message(msg) :
     
     if msg.author != bot.user :
-
-        
         
         if(str(msg.author) not in memberID):
-            memberID[str(msg.author)] = 0
+            userData[str(msg.author)] = {}
+            userData[str(msg.author)]["name"]=str(msg.author)
+            userData[str(msg.author)]["status"]=0
+            userData[str(msg.author)]["date"]=dt.now().strftime("%Y%m%d")
+            userData[str(msg.author)]["count"]=0
+            userData[str(msg.author)]["count today"]=0
+            userData[str(msg.author)]["total score"]=0
+            userData[str(msg.author)]["total score today"]=0
+            userData[str(msg.author)]["average sentiment score"]=0
+            userData[str(msg.author)]["average sentiment score today"]=0
+            userData[str(msg.author)]["last sentiment score"]=0
+        else:
+            if(userData[str(msg.author)]["date"] != dt.now().strftime("%Y%m%d")):
+                userData[str(msg.author)]["status"]=0
+                userData[str(msg.author)]["date"]=dt.now().strftime("%Y%m%d")
+                userData[str(msg.author)]["count today"]=0
+                userData[str(msg.author)]["total score today"]=0
+                userData[str(msg.author)]["average sentiment score today"]=0
+                
 
         if(msg.content[0:2]==cmdchar):
             await bot.process_commands(msg) # 與 command 指令會互相衝突
             log(str(msg.author)+' cmd : ' + msg.content)
             return
 
+        
+
         log(str(msg.author)+' on_message : ' + msg.content)
 
-        if(msg.content=='是' or msg.content=='否' or msg.content.lower()=='y' or msg.content.lower()=='n'):
-            log(" QAflag detect ")
-            #await msg.channel.send("菇兔君")
-            return
-        else:
-            #依照情緒分數給予答案
-            GPIO.output(LED[1],GPIO.HIGH)
-            # words = pseg.cut(cc.convert(msg.content))
-            # for w,f in words:
-            #     await msg.channel.send("%s  %s"%(w, f))
+        
+        #依照情緒分數給予答案
+        GPIO.output(LED[1],GPIO.HIGH)
+        # words = pseg.cut(cc.convert(msg.content))
+        # for w,f in words:
+        #     await msg.channel.send("%s  %s"%(w, f))
 
-            # seg_list = jieba.cut(cc.convert(msg.content),HMM=True)
-            # await msg.channel.send("Full Mode: " + "/ ".join(seg_list))
+        # seg_list = jieba.cut(cc.convert(msg.content),HMM=True)
+        # await msg.channel.send("Full Mode: " + "/ ".join(seg_list))
 
-            # seg_list = jieba.cut_for_search(cc.convert(msg.content))
-            # await msg.channel.send("Search Mode: " + "/ ".join(seg_list))
+        # seg_list = jieba.cut_for_search(cc.convert(msg.content))
+        # await msg.channel.send("Search Mode: " + "/ ".join(seg_list))
+        
+        # data = jieba.analyse.extract_tags(cc.convert(msg.content), topK=20, withWeight=False, allowPOS=())
+        # await msg.channel.send(data)
+        score=0
+
+        catagory = sentenceCheck(msg.content)
+        if(catagory==0):
+            userData[str(msg.author)]["status"] = 0
+            async with msg.channel.typing():
+                GPIO.output(LED[2],GPIO.HIGH)
+                response = random.sample(bye_response,1)[0]
+                waitTime = (len(response)-response.count("，")) * time_per_type
+                await asyncio.sleep(waitTime)
+                await msg.channel.send(response)
+                log(str(msg.author)+' bye : '+response)
+            GPIO.output(LED[2],GPIO.LOW)
+        elif(catagory==1):
+            userData[str(msg.author)]["status"] = 1
+            async with msg.channel.typing():
+                GPIO.output(LED[2],GPIO.HIGH)
+                response = random.sample(hello_response,1)[0]
+                waitTime = (len(response)-response.count("，")) * time_per_type
+                await asyncio.sleep(waitTime)
+                await msg.channel.send(response)
+                log(str(msg.author)+' greet : '+response)
+            GPIO.output(LED[2],GPIO.LOW)
+        elif(catagory==-1 and userData[str(msg.author)]["status"]==1):
             
-            # data = jieba.analyse.extract_tags(cc.convert(msg.content), topK=20, withWeight=False, allowPOS=())
-            # await msg.channel.send(data)
-            score=0
+            
 
-            catagory = sentenceCheck(msg.content)
-            if(catagory==0):
-                memberID[str(msg.author)] = 0
-                async with msg.channel.typing():
-                    GPIO.output(LED[2],GPIO.HIGH)
-                    response = random.sample(bye_response,1)[0]
-                    waitTime = (len(response)-response.count("，")) * time_per_type
-                    await asyncio.sleep(waitTime)
-                    await msg.channel.send(response)
-                    log(str(msg.author)+' bye : '+response)
-                GPIO.output(LED[2],GPIO.LOW)
-            elif(catagory==1):
-                memberID[str(msg.author)] = 1
-                async with msg.channel.typing():
-                    GPIO.output(LED[2],GPIO.HIGH)
-                    response = random.sample(hello_response,1)[0]
-                    waitTime = (len(response)-response.count("，")) * time_per_type
-                    await asyncio.sleep(waitTime)
-                    await msg.channel.send(response)
-                    log(str(msg.author)+' greet : '+response)
-                GPIO.output(LED[2],GPIO.LOW)
-            elif(catagory==-1 and memberID[str(msg.author)]==1):
-                now_time = time.time()
-                async with msg.channel.typing():
-                    GPIO.output(LED[2],GPIO.HIGH)
-                    document = language.types.Document(
-                        content=msg.content,
-                        type=enums.Document.Type.PLAIN_TEXT)
-                    log("輸入語句 : "+msg.content)
-                    log("情緒分析開始")
-                    sentiment = client.analyze_sentiment(document=document,encoding_type=enums.EncodingType.UTF8)
-                    # score=0
-                    for sentence in sentiment.sentences:
-                        score = round(sentence.sentiment.score*10,0)
-                    log("情緒分析成功")
-                    # await msg.channel.send("情緒數值 : "+str(score))
-                    log("情緒數值 : "+str(score))
-                    
+            now_time = time.time()
+            async with msg.channel.typing():
+                GPIO.output(LED[2],GPIO.HIGH)
+                document = language.types.Document(
+                    content=msg.content,
+                    type=enums.Document.Type.PLAIN_TEXT)
+                log("輸入語句 : "+msg.content)
+                log("情緒分析開始")
+                sentiment = client.analyze_sentiment(document=document,encoding_type=enums.EncodingType.UTF8)
+                # score=0
+                for sentence in sentiment.sentences:
+                    score = round(sentence.sentiment.score*10,0)
+                log("情緒分析成功")
+                # await msg.channel.send("情緒數值 : "+str(score))
+                log("情緒數值 : "+str(score))
+                
+                userData[str(msg.author)]["count"] += 1
+                userData[str(msg.author)]["total score"] += score
+                userData[str(msg.author)]["average sentiment score"]= userData[str(msg.author)]["total score"]/userData[str(msg.author)]["count"]
 
-                    response = random.sample(responseList[int(score)],1)[0]
-                    waitTime = (len(response)-response.count("，")) * time_per_type
+                userData[str(msg.author)]["count today"] += 1
+                userData[str(msg.author)]["total score today"] += score
+                userData[str(msg.author)]["average sentiment score today"]= userData[str(msg.author)]["total score today"]/userData[str(msg.author)]["count today"]
 
-                    use_time = time.time()-now_time
+                userData[str(msg.author)]["last sentiment score"] = score 
 
-                    # await asyncio.sleep(time)
-                    await asyncio.sleep(2)
-                    await msg.channel.send(response)
-                    log(str(msg.author)+' response : '+ response)
-                    writeLog(msg.content,score,response,use_time)
+                response = random.sample(responseList[int(score)],1)[0]
+                waitTime = (len(response)-response.count("，")) * time_per_type
 
-                GPIO.output(LED[2],GPIO.LOW)
-                log("輸出完成")
-                log('\n')
+                use_time = time.time()-now_time
+
+                # await asyncio.sleep(time)
+                await asyncio.sleep(2)
+                await msg.channel.send(response)
+                log(str(msg.author)+' response : '+ response)
+                writeLog(msg.content,score,response,use_time)
+
+            GPIO.output(LED[2],GPIO.LOW)
+            log("輸出完成")
+            log('\n')
+
             GPIO.output(LED[1],GPIO.LOW)
         writeMemberID()
         return
@@ -400,6 +413,7 @@ async def sys(ctx,option):
     GPIO.output(LED[2],GPIO.LOW)
     GPIO.output(LED[0],GPIO.HIGH)
     return
+
 '''
 @bot.command()
 async def maillog(ctx,mail,date):
@@ -476,24 +490,6 @@ async def maillog(ctx,mail,date):
     GPIO.output(LED[0],GPIO.HIGH)
     return
 '''
-@bot.command()
-async def git(ctx,cmd):
-    if(cmd=='push'):
-        try:
-            subprocess.Popen(['git','push','-u','origin','master'])
-        except:
-            log("git : 推送錯誤")
-            return
-    elif(cmd=='pull'):
-        try:
-            subprocess.Popen(['git','pull','origin','master'])
-        except:
-            log("git : 拉取錯誤")
-            return
-    else:
-        log("git : 指令輸入錯誤")
-        return
-    return
 
 # keywordScoreInput
 # @bot.command()
