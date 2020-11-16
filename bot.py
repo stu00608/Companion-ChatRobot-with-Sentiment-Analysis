@@ -85,12 +85,12 @@ def readMemberID():
     with open("./profile/id.json","r",encoding="utf-8") as jsonfile:
         global userData
         userData = json.load(jsonfile)
-        print(json.dumps(userData,indent=4,sort_keys=True))
+        # print(json.dumps(userData,indent=4,sort_keys=True))
 
 def writeMemberID():
     with open("./profile/id.json","w",encoding="utf-8") as jsonfile:
         outData = json.dumps(userData,indent=4,sort_keys=True)
-        print(outData)
+        # print(outData)
         jsonfile.write(outData)
     
 
@@ -306,15 +306,16 @@ async def on_message(msg) :
 
 @bot.command()
 async def status(ctx):
-    await ctx.send(f"{ctx.message.author.mention} Hello!")
-    temp = userData[str(ctx.message.author)]["average sentiment score today"]
-    await ctx.send(f"average sentiment score today : {temp}")
+    await ctx.send(f"{ctx.message.author.mention} 你好！")
+    await ctx.send("以下是您的情緒資料統計，數值僅供參考。")    
     temp = userData[str(ctx.message.author)]["average sentiment score"]
-    await ctx.send(f"average sentiment score : {temp}")
-    temp = userData[str(ctx.message.author)]["last sentiment score"]
-    await ctx.send(f"last sentiment score : {temp}")
+    await ctx.send(f"平均情緒分數 : {temp}")
+    temp = userData[str(ctx.message.author)]["average sentiment score today"]
+    await ctx.send(f"今日平均情緒分數 : {temp}")
     temp = userData[str(ctx.message.author)]["last three days score"]
-    await ctx.send(f"last three days score : {temp}")
+    await ctx.send(f"近三日的情緒分數 : {temp}")
+    temp = userData[str(ctx.message.author)]["last sentiment score"]
+    await ctx.send(f"上一次輸入的情緒分數 : {temp}")
     
 
 @bot.command()
