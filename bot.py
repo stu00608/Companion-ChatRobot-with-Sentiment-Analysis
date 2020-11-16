@@ -41,8 +41,6 @@ passList = ['zg','y','e','ul','x','n']
 # zg y e e ul y y y zg
 
 
-memberID = {}
-
 userData = {}
 
 
@@ -85,11 +83,15 @@ def log(msg):
 
 def readMemberID():
     with open("./profile/id.json","r",encoding="utf-8") as jsonfile:
+        global userData
         userData = json.load(jsonfile)
+        print(json.dumps(userData,indent=4,sort_keys=True))
 
 def writeMemberID():
     with open("./profile/id.json","w",encoding="utf-8") as jsonfile:
-        json.dump(userData,jsonfile)
+        outData = json.dumps(userData,indent=4,sort_keys=True)
+        print(outData)
+        jsonfile.write(outData)
     
 
 
@@ -141,7 +143,7 @@ async def on_ready() :
     log("讀取成員ID...")
     readMemberID()
     log("推送歡迎訊息...")
-    await channel.send('我回來了~')
+    #await channel.send('我回來了~')
     log('system setup')
     GPIO.output(LED[0],GPIO.HIGH)
 
@@ -179,7 +181,7 @@ async def on_message(msg) :
     
     if msg.author != bot.user :
         
-        if(str(msg.author) not in memberID):
+        if(str(msg.author) not in userData):
             userData[str(msg.author)] = {}
             userData[str(msg.author)]["name"]=str(msg.author)
             userData[str(msg.author)]["status"]=0
@@ -191,13 +193,19 @@ async def on_message(msg) :
             userData[str(msg.author)]["average sentiment score"]=0
             userData[str(msg.author)]["average sentiment score today"]=0
             userData[str(msg.author)]["last sentiment score"]=0
+            userData[str(msg.author)]["last three days score"]=[0,0,0]
+            writeMemberID()
+            
         else:
             if(userData[str(msg.author)]["date"] != dt.now().strftime("%Y%m%d")):
                 userData[str(msg.author)]["status"]=0
                 userData[str(msg.author)]["date"]=dt.now().strftime("%Y%m%d")
                 userData[str(msg.author)]["count today"]=0
                 userData[str(msg.author)]["total score today"]=0
+                userData[str(msg.author)]["last three days score"].pop(0)
+                userData[str(msg.author)]["last three days score"].append(userData[str(msg.author)]["average sentiment score today"])
                 userData[str(msg.author)]["average sentiment score today"]=0
+                writeMemberID()
                 
 
         if(msg.content[0:2]==cmdchar):
@@ -247,9 +255,9 @@ async def on_message(msg) :
                 await msg.channel.send(response)
                 log(str(msg.author)+' greet : '+response)
             GPIO.output(LED[2],GPIO.LOW)
-        elif(catagory==-1 and userData[str(msg.author)]["status"]==1):
+        elif(catagory==-1 and int(userData[str(msg.author)]["status"])==1):
             
-            
+            #print("test")
 
             now_time = time.time()
             async with msg.channel.typing():
@@ -295,6 +303,19 @@ async def on_message(msg) :
             GPIO.output(LED[1],GPIO.LOW)
         writeMemberID()
         return
+
+@bot.command()
+async def status(ctx):
+    await ctx.send(f"{ctx.message.author.mention} Hello!")
+    temp = userData[str(ctx.message.author)]["average sentiment score today"]
+    await ctx.send(f"average sentiment score today : {temp}")
+    temp = userData[str(ctx.message.author)]["average sentiment score"]
+    await ctx.send(f"average sentiment score : {temp}")
+    temp = userData[str(ctx.message.author)]["last sentiment score"]
+    await ctx.send(f"last sentiment score : {temp}")
+    temp = userData[str(ctx.message.author)]["last three days score"]
+    await ctx.send(f"last three days score : {temp}")
+    
 
 @bot.command()
 async def load(ctx, extension) :
